@@ -23,11 +23,11 @@ Section **Mode sombre** auto par bloc Style avec couleurs â€” `includes/class-og
 
 ## ZIP
 
-`powershell -ExecutionPolicy Bypass -File build-zip.ps1
+`powershell -ExecutionPolicy Bypass -File build-zip.ps1`
 
-## Dépôt Git
+## DÃ©pÃ´t Git
 
 - Remote : `git@github.com:vincentchauvaux/og-elementor-dark-mode.git`
 - Script ZIP : `build-zip.ps1` (sortie `og-elementor-dark-mode.zip`)
 - Branche suivie : `master` (`origin/master`)
-- Dernier commit poussé : `2a5bd7f`
+- Dernier commit poussÃ© : `9cb4aa5` (plugin initial : `2a5bd7f`)
