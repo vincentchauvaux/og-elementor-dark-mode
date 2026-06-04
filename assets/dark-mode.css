@@ -1,0 +1,80 @@
+/* Structure du switch : couleurs/tailles via le widget Elementor (priorité !important). */
+button.og-dark-toggle,
+.elementor-kit button.og-dark-toggle,
+.elementor button.og-dark-toggle,
+.elementor-widget-ogdm-switch button.og-dark-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: none !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    line-height: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.og-dark-toggle__face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.og-dark-toggle__face--dark {
+    display: none;
+}
+
+html.og-dark-mode .og-dark-toggle__face--light,
+body.og-dark-mode .og-dark-toggle__face--light {
+    display: none;
+}
+
+html.og-dark-mode .og-dark-toggle__face--dark,
+body.og-dark-mode .og-dark-toggle__face--dark {
+    display: flex;
+}
+
+button.og-dark-toggle:hover,
+.elementor button.og-dark-toggle:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+}
+
+button.og-dark-toggle .og-dark-toggle__el-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    color: inherit;
+}
+
+button.og-dark-toggle .og-dark-toggle__el-icon svg {
+    width: 1.04em;
+    height: 1.04em;
+    object-fit: contain;
+    display: block;
+}
+
+button.og-dark-toggle .og-dark-toggle__el-icon i {
+    color: currentColor;
+}
+
+/* Couleurs SVG : réglées dans le widget Elementor (fill / stroke / les deux). */
+button.og-dark-toggle .og-dark-toggle__el-icon svg {
+    display: block;
+}
+
+button.og-dark-toggle .og-dark-toggle__emoji {
+    line-height: 1;
+}
+
+html.og-dark-mode {
+    color-scheme: dark;
+}
