@@ -29,3 +29,5 @@ Section **Mode sombre** auto par bloc Style avec couleurs â€” `includes/class-og
 
 - Remote : `git@github.com:vincentchauvaux/og-elementor-dark-mode.git`
 - Script ZIP : `build-zip.ps1` (sortie `og-elementor-dark-mode.zip`)
+- Branche suivie : `master` (`origin/master`)
+- Dernier commit poussé : `2a5bd7f`
