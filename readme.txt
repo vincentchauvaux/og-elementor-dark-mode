@@ -1,19 +1,50 @@
-=== OG Elementor Dark Mode ===
-Contributors: vincent
-Requires at least: 5.8
+=== Hakou Dark Mode ===
+Contributors: Hakou
+Tags: dark mode, elementor, dark theme, accessibility
+Requires at least: 6.0
+Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.4.2
+Stable tag: 1.4.7
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Dark mode pour sites Elementor : couleurs globales du kit, couleurs ACF taxonomies, widget switch.
+Dark mode custom for Elementor with global kit colors and switcher widget.
 
 == Installation ==
 
-1. Extensions → Ajouter → Téléverser une extension
-2. Choisir og-elementor-dark-mode.zip
-3. Installer puis activer
+1. Upload the plugin folder to `/wp-content/plugins/`.
+2. Activate the plugin from the WordPress Plugins screen.
+3. Configure dark mode settings in `Hakou Dark Mode`.
+4. Add the `Dark Mode Switch` widget where needed.
 
-Le dossier sur le serveur doit être : wp-content/plugins/og-elementor-dark-mode/
+== Description ==
 
-== Fichier principal ==
+Hakou Dark Mode adds a customizable dark mode system for Elementor websites, using global kit colors and a dedicated switcher widget.
 
-opengraphy-dark-mode.php (en-tête Plugin Name WordPress)
+Features include:
+
+- Dark-mode mapping for Elementor global kit colors.
+- Dark-mode mapping for Elementor button style colors.
+- A dedicated Elementor switch widget with icon/style controls.
+- Optional ACF taxonomy color mapping for dynamic CSS vars.
+
+== Screenshots ==
+
+1. Page d'administration « Hakou Dark Mode » (cartographie des couleurs du mode sombre).
+
+== Changelog ==
+
+= 1.4.7 =
+* Update WordPress.org banner image.
+
+= 1.4.6 =
+* Improve the admin toggle UI to look like a proper switch.
+
+= 1.4.5 =
+* Update plugin title/author and reference website.
+
+= 1.4.4 =
+* Add an admin-only wording switch (sombre -> claire).
+
+= 1.4.3 =
+* Prepared initial public package for WordPress.org submission.

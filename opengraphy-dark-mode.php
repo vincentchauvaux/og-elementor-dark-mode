@@ -1,12 +1,14 @@
 <?php
 /**
- * Plugin Name: OG Elementor Dark Mode
- * Plugin URI: https://opengraphy.com
+ * Plugin Name: Hakou Dark Mode
+ * Plugin URI: https://hakou.be/
  * Description: Dark mode custom pour Elementor avec couleurs globales du kit et widget switcher.
- * Version: 1.4.2
- * Requires at least: 5.8
+ * Version: 1.4.7
+ * Requires at least: 6.0
  * Requires PHP: 7.4
- * Author: Vincent
+ * Author: Hakou
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: og-elementor-dark-mode
  */
 
@@ -16,7 +18,7 @@ if (!defined('ABSPATH')) {
 
 define('OGDM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('OGDM_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('OGDM_VERSION', '1.4.2');
+define('OGDM_VERSION', '1.4.7');
 define('OGDM_STORAGE_KEY', 'ogdm_dark_mode');
 define('OGDM_DARK_CLASS', 'og-dark-mode');
 
@@ -636,8 +638,8 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
 add_action('admin_menu', function () {
     add_menu_page(
-        'OG Dark Mode',
-        'OG Dark Mode',
+        'Hakou Dark Mode',
+        'Hakou Dark Mode',
         'manage_options',
         'og-dark-mode',
         'ogdm_settings_page',
@@ -697,6 +699,14 @@ function ogdm_settings_page() {
         return;
     }
 
+    // Option admin : inverser uniquement les libellés (sombre -> claire), sans impacter la logique.
+    if (isset($_POST['ogdm_toggle_wording']) && isset($_POST['ogdm_wording_nonce'])
+        && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ogdm_wording_nonce'])), 'ogdm_toggle_wording')) {
+        $use_claire_labels = isset($_POST['ogdm_wording_light']) ? (bool) $_POST['ogdm_wording_light'] : false;
+        update_option('ogdm_admin_use_claire_labels', $use_claire_labels ? 1 : 0);
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Préférence d’affichage admin mise à jour.', 'og-elementor-dark-mode') . '</p></div>';
+    }
+
     if (isset($_POST['ogdm_save']) && isset($_POST['ogdm_nonce'])
         && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ogdm_nonce'])), 'ogdm_save_settings')) {
 
@@ -737,10 +747,21 @@ function ogdm_settings_page() {
     $kit_button_colors = ogdm_get_elementor_kit_button_colors();
     $acf_term_colors = OGDM_ACF_Term_Colors::scan_unique_colors();
     $acf_sources = OGDM_ACF_Term_Colors::get_sources();
+    $use_claire_labels = (bool) get_option('ogdm_admin_use_claire_labels', 0);
+
+    $version_label = $use_claire_labels
+        ? __('version claire', 'og-elementor-dark-mode')
+        : __('version sombre', 'og-elementor-dark-mode');
+    $mode_label = $use_claire_labels
+        ? __('mode claire', 'og-elementor-dark-mode')
+        : __('mode sombre', 'og-elementor-dark-mode');
+    $Mode_label = $use_claire_labels
+        ? __('Mode claire', 'og-elementor-dark-mode')
+        : __('Mode sombre', 'og-elementor-dark-mode');
 
     ?>
     <div class="wrap">
-        <h1><?php echo esc_html__('OG Dark Mode', 'og-elementor-dark-mode'); ?></h1>
+        <h1><?php echo esc_html__('Hakou Dark Mode', 'og-elementor-dark-mode'); ?></h1>
 
         <?php if (!class_exists('\Elementor\Plugin')) : ?>
             <div class="notice notice-warning"><p>
@@ -748,14 +769,36 @@ function ogdm_settings_page() {
             </p></div>
         <?php endif; ?>
 
+        <form method="post" style="margin:12px 0 0;">
+            <?php wp_nonce_field('ogdm_toggle_wording', 'ogdm_wording_nonce'); ?>
+            <input type="hidden" name="ogdm_toggle_wording" value="1" />
+            <div class="ogdm-wording-switch">
+                <label class="ogdm-switch" aria-label="<?php echo esc_attr__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'og-elementor-dark-mode'); ?>">
+                    <input
+                        type="checkbox"
+                        name="ogdm_wording_light"
+                        value="1"
+                        <?php checked($use_claire_labels, true); ?>
+                    />
+                    <span class="ogdm-switch__slider" aria-hidden="true"></span>
+                </label>
+                <span class="ogdm-wording-switch__text">
+                    <?php echo esc_html__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'og-elementor-dark-mode'); ?>
+                </span>
+            </div>
+            <p style="margin-top:8px;">
+                <button type="submit" class="button"><?php echo esc_html__('Appliquer', 'og-elementor-dark-mode'); ?></button>
+            </p>
+        </form>
+
         <form method="post">
             <?php wp_nonce_field('ogdm_save_settings', 'ogdm_nonce'); ?>
 
-            <h2 class="title"><?php echo esc_html__('Couleurs globales → version sombre', 'og-elementor-dark-mode'); ?></h2>
+            <h2 class="title"><?php echo esc_html('Couleurs globales → ' . $version_label); ?></h2>
             <p class="description">
-                <?php echo esc_html__('Ces couleurs ne s’appliquent que lorsque le site est en mode sombre (classe og-dark-mode). En mode clair, ce sont les couleurs du kit Elementor qui comptent.', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html('Ces couleurs ne s’appliquent que lorsque le site est en ' . $mode_label . ' (classe og-dark-mode). En mode clair, ce sont les couleurs du kit Elementor qui comptent.'); ?>
                 <?php echo esc_html__(' Si un bouton Elementor reste foncé en mode clair, vérifiez sa couleur globale dans Site Settings (ex. --e-global-color-…).', 'og-elementor-dark-mode'); ?>
-                <?php echo esc_html__(' Par widget : onglet Style → section « Mode sombre » (sous chaque bloc de style qui contient des couleurs).', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html(' Par widget : onglet Style → section « ' . $Mode_label . ' » (sous chaque bloc de style qui contient des couleurs).'); ?>
                 <?php echo esc_html__(' Switch : widget « Dark Mode Switch ».', 'og-elementor-dark-mode'); ?>
                 <?php echo esc_html__(' Pipette : clic sur la pastille (couleur + transparence en bas).', 'og-elementor-dark-mode'); ?>
             </p>
@@ -770,7 +813,7 @@ function ogdm_settings_page() {
                     <tr>
                         <th><?php echo esc_html__('Couleur kit', 'og-elementor-dark-mode'); ?></th>
                         <th><?php echo esc_html__('Variable CSS', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Couleur en mode sombre', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -805,7 +848,7 @@ function ogdm_settings_page() {
                 </tbody>
             </table>
 
-            <h2 class="title" style="margin-top:28px;"><?php echo esc_html__('Couleurs bouton Elementor → version sombre', 'og-elementor-dark-mode'); ?></h2>
+            <h2 class="title" style="margin-top:28px;"><?php echo esc_html('Couleurs bouton Elementor → ' . $version_label); ?></h2>
             <p class="description">
                 <?php echo esc_html__('Valeurs du kit (Site Settings → Theme Style → Bouton). Le switch dark mode est exclu : son style reste dans le widget.', 'og-elementor-dark-mode'); ?>
             </p>
@@ -815,7 +858,7 @@ function ogdm_settings_page() {
                     <tr>
                         <th><?php echo esc_html__('Réglage kit', 'og-elementor-dark-mode'); ?></th>
                         <th><?php echo esc_html__('Couleur kit', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Couleur en mode sombre', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -850,7 +893,7 @@ function ogdm_settings_page() {
                 </tbody>
             </table>
 
-            <h2 class="title" style="margin-top:28px;"><?php echo esc_html__('Couleurs ACF (taxonomies) → version sombre', 'og-elementor-dark-mode'); ?></h2>
+            <h2 class="title" style="margin-top:28px;"><?php echo esc_html('Couleurs ACF (taxonomies) → ' . $version_label); ?></h2>
             <p class="description">
                 <?php echo esc_html__('Couleurs détectées automatiquement sur les termes via les champs color_picker ACF (ex. couleur de catégorie). Utilisées pour les variables CSS dynamiques (--gl-term-color, --gl-current-term-color, etc.).', 'og-elementor-dark-mode'); ?>
                 <?php if ($acf_sources !== []) : ?>
@@ -877,7 +920,7 @@ function ogdm_settings_page() {
                     <tr>
                         <th><?php echo esc_html__('Couleur ACF (mode clair)', 'og-elementor-dark-mode'); ?></th>
                         <th><?php echo esc_html__('Source', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Couleur en mode sombre', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>

@@ -146,3 +146,60 @@
 .ogdm-picker.is-transparent .ogdm-picker__fill {
     opacity: 0;
 }
+
+/* Admin: mini-switch “sombre -> claire” (libellés uniquement) */
+.ogdm-wording-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0;
+}
+
+.ogdm-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    flex: 0 0 auto;
+}
+
+.ogdm-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ogdm-switch__slider {
+    position: absolute;
+    inset: 0;
+    background-color: #c3c4c7;
+    border-radius: 999px;
+    transition: background-color 0.18s ease;
+    cursor: pointer;
+}
+
+.ogdm-switch__slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.18s ease;
+}
+
+.ogdm-switch input:checked + .ogdm-switch__slider {
+    background-color: #2271b1;
+}
+
+.ogdm-switch input:checked + .ogdm-switch__slider::before {
+    transform: translateX(22px);
+}
+
+.ogdm-switch input:focus-visible + .ogdm-switch__slider {
+    outline: 2px solid rgba(34, 113, 177, 0.45);
+    outline-offset: 3px;
+}

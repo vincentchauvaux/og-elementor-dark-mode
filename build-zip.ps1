@@ -21,6 +21,9 @@ if (Test-Path (Join-Path $root 'includes')) {
 if (Test-Path (Join-Path $root 'readme.txt')) {
     Copy-Item (Join-Path $root 'readme.txt') $folder
 }
+if (Test-Path (Join-Path $root 'LICENSE.txt')) {
+    Copy-Item (Join-Path $root 'LICENSE.txt') $folder
+}
 
 if (Test-Path $zipOut) {
     Remove-Item $zipOut -Force
