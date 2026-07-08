@@ -3,34 +3,50 @@
  * Plugin Name: Hakou Dark Mode
  * Plugin URI: https://hakou.be/
  * Description: Dark mode custom pour Elementor avec couleurs globales du kit et widget switcher.
- * Version: 1.4.7
+ * Version: 1.5.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Hakou
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: og-elementor-dark-mode
+ * Text Domain: hakou-dark-mode
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('OGDM_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('OGDM_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('OGDM_VERSION', '1.4.7');
-define('OGDM_STORAGE_KEY', 'ogdm_dark_mode');
-define('OGDM_DARK_CLASS', 'og-dark-mode');
+define('HKDM_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('HKDM_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('HKDM_VERSION', '1.5.1');
+define('HKDM_STORAGE_KEY', 'hkdm_dark_mode');
+define('HKDM_DARK_CLASS', 'hakou-dark-mode');
 
-require_once OGDM_PLUGIN_PATH . 'includes/class-ogdm-elementor-dark-controls.php';
-require_once OGDM_PLUGIN_PATH . 'includes/class-ogdm-acf-term-colors.php';
+require_once HKDM_PLUGIN_PATH . 'includes/class-hkdm-elementor-dark-controls.php';
+require_once HKDM_PLUGIN_PATH . 'includes/class-hkdm-acf-term-colors.php';
 
-add_action('elementor/loaded', ['OGDM_Elementor_Dark_Controls', 'init']);
+add_action('elementor/loaded', ['HKDM_Elementor_Dark_Controls', 'init']);
+
+/**
+ * Migration des options depuis les identifiants OG (ogdm_*).
+ */
+function hkdm_migrate_legacy_options() {
+    $legacy_settings = get_option('ogdm_settings');
+    if ($legacy_settings !== false && get_option('hkdm_settings') === false) {
+        add_option('hkdm_settings', $legacy_settings);
+    }
+
+    $legacy_labels = get_option('ogdm_admin_use_claire_labels');
+    if ($legacy_labels !== false && get_option('hkdm_admin_use_claire_labels') === false) {
+        add_option('hkdm_admin_use_claire_labels', $legacy_labels);
+    }
+}
+add_action('init', 'hkdm_migrate_legacy_options', 1);
 
 /**
  * Convertit une couleur CSS (hex, rgb, rgba) en #rrggbb pour <input type="color">.
  */
-function ogdm_normalize_color_to_hex($color) {
+function hkdm_normalize_color_to_hex($color) {
     $color = trim((string) $color);
     $hex = sanitize_hex_color($color);
     if ($hex) {
@@ -50,7 +66,7 @@ function ogdm_normalize_color_to_hex($color) {
 /**
  * Valeur CSS sûre : transparent, hex 3/6/8, rgb, rgba.
  */
-function ogdm_sanitize_css_color_value($raw) {
+function hkdm_sanitize_css_color_value($raw) {
     $raw = trim((string) $raw);
     if ($raw === '' || strlen($raw) > 120) {
         return '';
@@ -102,7 +118,7 @@ function ogdm_sanitize_css_color_value($raw) {
 /**
  * @return array{hex: string, opacity: int, css: string}
  */
-function ogdm_split_saved_color_for_ui($css, $fallback_hex) {
+function hkdm_split_saved_color_for_ui($css, $fallback_hex) {
     $fb = sanitize_hex_color($fallback_hex) ?: '#000000';
     $css = trim((string) $css);
     if ($css === '') {
@@ -136,12 +152,12 @@ function ogdm_split_saved_color_for_ui($css, $fallback_hex) {
         return ['hex' => $hex6, 'opacity' => (int) round($av), 'css' => $css];
     }
 
-    $sanitized = ogdm_sanitize_css_color_value($css);
+    $sanitized = hkdm_sanitize_css_color_value($css);
 
     return ['hex' => $fb, 'opacity' => 100, 'css' => $sanitized !== '' ? $sanitized : $css];
 }
 
-function ogdm_build_color_from_picker($hex_raw, $opacity_pct) {
+function hkdm_build_color_from_picker($hex_raw, $opacity_pct) {
     $opacity_pct = min(100, max(0, (int) $opacity_pct));
     $hex = sanitize_hex_color($hex_raw);
     if (!$hex) {
@@ -172,13 +188,13 @@ function ogdm_build_color_from_picker($hex_raw, $opacity_pct) {
     return sprintf('#%02x%02x%02x%02x', $r, $g, $b, $alpha);
 }
 
-function ogdm_kit_color_admin_default($kit_color) {
-    $css = ogdm_sanitize_css_color_value($kit_color);
+function hkdm_kit_color_admin_default($kit_color) {
+    $css = hkdm_sanitize_css_color_value($kit_color);
     if ($css !== '') {
         return $css;
     }
 
-    return ogdm_normalize_color_to_hex($kit_color);
+    return hkdm_normalize_color_to_hex($kit_color);
 }
 
 /**
@@ -186,7 +202,7 @@ function ogdm_kit_color_admin_default($kit_color) {
  *
  * @return array<int, array{id: string, title: string, color: string}>
  */
-function ogdm_get_elementor_kit_colors() {
+function hkdm_get_elementor_kit_colors() {
     if (!class_exists('\Elementor\Plugin')) {
         return [];
     }
@@ -227,7 +243,7 @@ function ogdm_get_elementor_kit_colors() {
 /**
  * Extrait une couleur lisible depuis un réglage kit Elementor.
  */
-function ogdm_resolve_kit_color_value($raw, array $kit_colors = []) {
+function hkdm_resolve_kit_color_value($raw, array $kit_colors = []) {
     if (is_array($raw)) {
         if (!empty($raw['color'])) {
             return (string) $raw['color'];
@@ -258,7 +274,7 @@ function ogdm_resolve_kit_color_value($raw, array $kit_colors = []) {
  *
  * @return array<int, array{id: string, title: string, color: string, kit_key: string}>
  */
-function ogdm_get_elementor_kit_button_colors() {
+function hkdm_get_elementor_kit_button_colors() {
     if (!class_exists('\Elementor\Plugin')) {
         return [];
     }
@@ -278,14 +294,14 @@ function ogdm_get_elementor_kit_button_colors() {
         return [];
     }
 
-    $palette = ogdm_get_elementor_kit_colors();
+    $palette = hkdm_get_elementor_kit_colors();
     $defs = [
-        ['id' => 'btn_text', 'kit_key' => 'button_text_color', 'title' => __('Texte du bouton', 'og-elementor-dark-mode')],
-        ['id' => 'btn_bg', 'kit_key' => 'button_background_color', 'title' => __('Fond du bouton', 'og-elementor-dark-mode')],
-        ['id' => 'btn_border', 'kit_key' => 'button_border_color', 'title' => __('Bordure du bouton', 'og-elementor-dark-mode')],
-        ['id' => 'btn_hover_text', 'kit_key' => 'button_hover_text_color', 'title' => __('Texte du bouton (survol)', 'og-elementor-dark-mode')],
-        ['id' => 'btn_hover_bg', 'kit_key' => 'button_hover_background_color', 'title' => __('Fond du bouton (survol)', 'og-elementor-dark-mode')],
-        ['id' => 'btn_hover_border', 'kit_key' => 'button_hover_border_color', 'title' => __('Bordure du bouton (survol)', 'og-elementor-dark-mode')],
+        ['id' => 'btn_text', 'kit_key' => 'button_text_color', 'title' => __('Texte du bouton', 'hakou-dark-mode')],
+        ['id' => 'btn_bg', 'kit_key' => 'button_background_color', 'title' => __('Fond du bouton', 'hakou-dark-mode')],
+        ['id' => 'btn_border', 'kit_key' => 'button_border_color', 'title' => __('Bordure du bouton', 'hakou-dark-mode')],
+        ['id' => 'btn_hover_text', 'kit_key' => 'button_hover_text_color', 'title' => __('Texte du bouton (survol)', 'hakou-dark-mode')],
+        ['id' => 'btn_hover_bg', 'kit_key' => 'button_hover_background_color', 'title' => __('Fond du bouton (survol)', 'hakou-dark-mode')],
+        ['id' => 'btn_hover_border', 'kit_key' => 'button_hover_border_color', 'title' => __('Bordure du bouton (survol)', 'hakou-dark-mode')],
     ];
 
     $rows = [];
@@ -294,7 +310,7 @@ function ogdm_get_elementor_kit_button_colors() {
         if (!isset($settings[$key])) {
             continue;
         }
-        $color = ogdm_resolve_kit_color_value($settings[$key], $palette);
+        $color = hkdm_resolve_kit_color_value($settings[$key], $palette);
         if ($color === '') {
             continue;
         }
@@ -312,8 +328,8 @@ function ogdm_get_elementor_kit_button_colors() {
 /**
  * @return array<string, string> id => couleur CSS mode sombre
  */
-function ogdm_get_dark_color_map() {
-    $settings = get_option('ogdm_settings', []);
+function hkdm_get_dark_color_map() {
+    $settings = get_option('hkdm_settings', []);
     $map = isset($settings['color_map']) && is_array($settings['color_map'])
         ? $settings['color_map']
         : [];
@@ -324,7 +340,7 @@ function ogdm_get_dark_color_map() {
         if ($id === '') {
             continue;
         }
-        $color = ogdm_sanitize_css_color_value((string) $value);
+        $color = hkdm_sanitize_css_color_value((string) $value);
         if ($color !== '') {
             $out[$id] = $color;
         }
@@ -339,7 +355,7 @@ function ogdm_get_dark_color_map() {
             'accent' => $settings['accent'] ?? '',
         ];
         foreach ($legacy as $id => $value) {
-            $color = ogdm_sanitize_css_color_value((string) $value);
+            $color = hkdm_sanitize_css_color_value((string) $value);
             if ($color !== '') {
                 $out[sanitize_key($id)] = $color;
             }
@@ -352,8 +368,8 @@ function ogdm_get_dark_color_map() {
 /**
  * @return array<string, string> id => couleur CSS mode sombre
  */
-function ogdm_get_dark_button_color_map() {
-    $settings = get_option('ogdm_settings', []);
+function hkdm_get_dark_button_color_map() {
+    $settings = get_option('hkdm_settings', []);
     $map = isset($settings['button_color_map']) && is_array($settings['button_color_map'])
         ? $settings['button_color_map']
         : [];
@@ -364,7 +380,7 @@ function ogdm_get_dark_button_color_map() {
         if ($id === '') {
             continue;
         }
-        $color = ogdm_sanitize_css_color_value((string) $value);
+        $color = hkdm_sanitize_css_color_value((string) $value);
         if ($color !== '') {
             $out[$id] = $color;
         }
@@ -373,12 +389,12 @@ function ogdm_get_dark_button_color_map() {
     return $out;
 }
 
-function ogdm_build_dark_mode_css() {
+function hkdm_build_dark_mode_css() {
     $chunks = [];
 
-    $color_map = ogdm_get_dark_color_map();
+    $color_map = hkdm_get_dark_color_map();
     if ($color_map !== []) {
-        $lines = ['html.og-dark-mode,body.og-dark-mode{'];
+        $lines = ['html.hakou-dark-mode,body.hakou-dark-mode{'];
         foreach ($color_map as $id => $color) {
             $id = preg_replace('/[^a-zA-Z0-9_-]/', '', $id);
             if ($id === '' || $color === '') {
@@ -390,7 +406,7 @@ function ogdm_build_dark_mode_css() {
         $chunks[] = implode('', $lines);
     }
 
-    $btn_map = ogdm_get_dark_button_color_map();
+    $btn_map = hkdm_get_dark_button_color_map();
     if ($btn_map !== []) {
         $text = $btn_map['btn_text'] ?? '';
         $bg = $btn_map['btn_bg'] ?? '';
@@ -399,8 +415,8 @@ function ogdm_build_dark_mode_css() {
         $hover_bg = $btn_map['btn_hover_bg'] ?? '';
         $hover_border = $btn_map['btn_hover_border'] ?? '';
 
-        $base_sel = 'body.og-dark-mode button:not(.og-dark-toggle),body.og-dark-mode .elementor-button:not(.og-dark-toggle),body.og-dark-mode .elementor-button-link:not(.og-dark-toggle)';
-        $hover_sel = 'body.og-dark-mode button:not(.og-dark-toggle):hover,body.og-dark-mode .elementor-button:not(.og-dark-toggle):hover,body.og-dark-mode .elementor-button-link:not(.og-dark-toggle):hover';
+        $base_sel = 'body.hakou-dark-mode button:not(.hakou-dark-toggle),body.hakou-dark-mode .elementor-button:not(.hakou-dark-toggle),body.hakou-dark-mode .elementor-button-link:not(.hakou-dark-toggle)';
+        $hover_sel = 'body.hakou-dark-mode button:not(.hakou-dark-toggle):hover,body.hakou-dark-mode .elementor-button:not(.hakou-dark-toggle):hover,body.hakou-dark-mode .elementor-button-link:not(.hakou-dark-toggle):hover';
 
         $decl = [];
         if ($text) {
@@ -439,7 +455,7 @@ function ogdm_build_dark_mode_css() {
  *
  * @param array{value?: mixed, library?: string} $icon
  */
-function ogdm_elementor_icon_is_configured(array $icon) {
+function hkdm_elementor_icon_is_configured(array $icon) {
     $library = isset($icon['library']) ? (string) $icon['library'] : '';
     if ($library === '') {
         return false;
@@ -458,7 +474,7 @@ function ogdm_elementor_icon_is_configured(array $icon) {
  * @param mixed $raw
  * @return array{value: string|array{id?: int, url?: string}, library: string}
  */
-function ogdm_sanitize_elementor_icon($raw) {
+function hkdm_sanitize_elementor_icon($raw) {
     if (is_string($raw)) {
         $decoded = json_decode(wp_unslash($raw), true);
         $raw = is_array($decoded) ? $decoded : [];
@@ -510,10 +526,10 @@ function ogdm_sanitize_elementor_icon($raw) {
     ];
 }
 
-function ogdm_enqueue_elementor_icon_fonts(array $icon) {
-    $icon = ogdm_sanitize_elementor_icon($icon);
+function hkdm_enqueue_elementor_icon_fonts(array $icon) {
+    $icon = hkdm_sanitize_elementor_icon($icon);
     if (
-        !ogdm_elementor_icon_is_configured($icon)
+        !hkdm_elementor_icon_is_configured($icon)
         || $icon['library'] === 'svg'
         || !did_action('elementor/loaded')
     ) {
@@ -525,10 +541,10 @@ function ogdm_enqueue_elementor_icon_fonts(array $icon) {
     }
 }
 
-function ogdm_render_elementor_icon_html(array $icon, $wrapper_class = 'og-dark-toggle__el-icon') {
-    $icon = ogdm_sanitize_elementor_icon($icon);
+function hkdm_render_elementor_icon_html(array $icon, $wrapper_class = 'hakou-dark-toggle__el-icon') {
+    $icon = hkdm_sanitize_elementor_icon($icon);
     if (
-        !ogdm_elementor_icon_is_configured($icon)
+        !hkdm_elementor_icon_is_configured($icon)
         || !did_action('elementor/loaded')
         || !class_exists('\Elementor\Icons_Manager')
     ) {
@@ -553,13 +569,13 @@ function ogdm_render_elementor_icon_html(array $icon, $wrapper_class = 'og-dark-
     return $html;
 }
 
-function ogdm_switch_face_inner_html(array $icon, $emoji_char) {
-    $el = ogdm_render_elementor_icon_html($icon);
+function hkdm_switch_face_inner_html(array $icon, $emoji_char) {
+    $el = hkdm_render_elementor_icon_html($icon);
     if ($el !== '') {
         return $el;
     }
 
-    return '<span class="og-dark-toggle__emoji" aria-hidden="true">' . esc_html($emoji_char) . '</span>';
+    return '<span class="hakou-dark-toggle__emoji" aria-hidden="true">' . esc_html($emoji_char) . '</span>';
 }
 
 /*
@@ -568,11 +584,11 @@ function ogdm_switch_face_inner_html(array $icon, $emoji_char) {
 |--------------------------------------------------------------------------
 */
 
-function ogdm_print_head_sync_script() {
-    $dark_class = OGDM_DARK_CLASS;
-    $storage_key = OGDM_STORAGE_KEY;
+function hkdm_print_head_sync_script() {
+    $dark_class = HKDM_DARK_CLASS;
+    $storage_key = HKDM_STORAGE_KEY;
 
-    echo '<script id="ogdm-head-sync">';
+    echo '<script id="hkdm-head-sync">';
     echo '(function(){var k=' . wp_json_encode($storage_key) . ',c=' . wp_json_encode($dark_class) . ';';
     echo 'var on=false;try{var s=localStorage.getItem(k);on=s==="1";}catch(e){}';
     echo 'document.documentElement.classList.toggle(c,on);';
@@ -580,7 +596,7 @@ function ogdm_print_head_sync_script() {
     echo '</script>';
 }
 
-add_action('wp_head', 'ogdm_print_head_sync_script', 0);
+add_action('wp_head', 'hkdm_print_head_sync_script', 0);
 
 add_action('wp_enqueue_scripts', function () {
     $deps = [];
@@ -589,30 +605,30 @@ add_action('wp_enqueue_scripts', function () {
     }
 
     wp_enqueue_style(
-        'ogdm-style',
-        OGDM_PLUGIN_URL . 'assets/dark-mode.css',
+        'hkdm-style',
+        HKDM_PLUGIN_URL . 'assets/dark-mode.css',
         $deps,
-        OGDM_VERSION
+        HKDM_VERSION
     );
 
     wp_enqueue_script(
-        'ogdm-script',
-        OGDM_PLUGIN_URL . 'assets/dark-mode.js',
+        'hkdm-script',
+        HKDM_PLUGIN_URL . 'assets/dark-mode.js',
         [],
-        OGDM_VERSION,
+        HKDM_VERSION,
         true
     );
 
-    wp_localize_script('ogdm-script', 'ogdmSettings', [
-        'dark_class' => OGDM_DARK_CLASS,
-        'storage_key' => OGDM_STORAGE_KEY,
-        'acf_color_map' => OGDM_ACF_Term_Colors::get_front_color_map(),
-        'dynamic_css_vars' => OGDM_ACF_Term_Colors::get_dynamic_css_vars(),
+    wp_localize_script('hkdm-script', 'hkdmSettings', [
+        'dark_class' => HKDM_DARK_CLASS,
+        'storage_key' => HKDM_STORAGE_KEY,
+        'acf_color_map' => HKDM_ACF_Term_Colors::get_front_color_map(),
+        'dynamic_css_vars' => HKDM_ACF_Term_Colors::get_dynamic_css_vars(),
     ]);
 
-    $inline = ogdm_build_dark_mode_css();
+    $inline = hkdm_build_dark_mode_css();
     if ($inline !== '') {
-        wp_add_inline_style('ogdm-style', $inline);
+        wp_add_inline_style('hkdm-style', $inline);
     }
 }, 99);
 
@@ -623,15 +639,15 @@ add_action('wp_enqueue_scripts', function () {
 */
 
 add_action('admin_enqueue_scripts', function ($hook) {
-    if ($hook !== 'toplevel_page_og-dark-mode') {
+    if ($hook !== 'toplevel_page_hakou-dark-mode') {
         return;
     }
-    wp_enqueue_style('ogdm-admin', OGDM_PLUGIN_URL . 'assets/admin.css', [], OGDM_VERSION);
+    wp_enqueue_style('hkdm-admin', HKDM_PLUGIN_URL . 'assets/admin.css', [], HKDM_VERSION);
     wp_enqueue_script(
-        'ogdm-admin',
-        OGDM_PLUGIN_URL . 'assets/admin.js',
+        'hkdm-admin',
+        HKDM_PLUGIN_URL . 'assets/admin.js',
         ['jquery'],
-        OGDM_VERSION,
+        HKDM_VERSION,
         true
     );
 });
@@ -641,8 +657,8 @@ add_action('admin_menu', function () {
         'Hakou Dark Mode',
         'Hakou Dark Mode',
         'manage_options',
-        'og-dark-mode',
-        'ogdm_settings_page',
+        'hakou-dark-mode',
+        'hkdm_settings_page',
         'dashicons-lightbulb'
     );
 });
@@ -657,7 +673,7 @@ add_action('admin_menu', function () {
  * @param array<string, mixed> $css_fields
  * @return array<string, string>
  */
-function ogdm_save_color_map_from_post(array $css_fields) {
+function hkdm_save_color_map_from_post(array $css_fields) {
     $out = [];
 
     foreach ($css_fields as $id => $raw) {
@@ -665,7 +681,7 @@ function ogdm_save_color_map_from_post(array $css_fields) {
         if ($id === '') {
             continue;
         }
-        $color = ogdm_sanitize_css_color_value(trim((string) $raw));
+        $color = hkdm_sanitize_css_color_value(trim((string) $raw));
         if ($color !== '') {
             $out[$id] = $color;
         }
@@ -679,61 +695,61 @@ function ogdm_save_color_map_from_post(array $css_fields) {
  *
  * @param array{hex: string, opacity: int, css: string} $ui
  */
-function ogdm_render_admin_color_picker($field_name, $id, array $ui, $kit_default, $kit_hex) {
+function hkdm_render_admin_color_picker($field_name, $id, array $ui, $kit_default, $kit_hex) {
     ?>
-    <div class="ogdm-picker" data-color-row data-kit-default="<?php echo esc_attr($kit_default); ?>" data-kit-hex="<?php echo esc_attr($kit_hex); ?>">
-        <input type="hidden" name="<?php echo esc_attr($field_name); ?>[<?php echo esc_attr($id); ?>]" class="ogdm-picker__value" value="<?php echo esc_attr($ui['css']); ?>">
-        <div class="ogdm-picker__surface">
-            <span class="ogdm-picker__checker" aria-hidden="true"></span>
-            <span class="ogdm-picker__fill" aria-hidden="true"></span>
-            <input type="color" class="ogdm-picker__hex" value="<?php echo esc_attr($ui['hex']); ?>" aria-label="<?php esc_attr_e('Couleur', 'og-elementor-dark-mode'); ?>">
-            <input type="range" class="ogdm-picker__alpha" min="0" max="100" value="<?php echo esc_attr((string) (int) $ui['opacity']); ?>" aria-label="<?php esc_attr_e('Opacité', 'og-elementor-dark-mode'); ?>">
+    <div class="hkdm-picker" data-color-row data-kit-default="<?php echo esc_attr($kit_default); ?>" data-kit-hex="<?php echo esc_attr($kit_hex); ?>">
+        <input type="hidden" name="<?php echo esc_attr($field_name); ?>[<?php echo esc_attr($id); ?>]" class="hkdm-picker__value" value="<?php echo esc_attr($ui['css']); ?>">
+        <div class="hkdm-picker__surface">
+            <span class="hkdm-picker__checker" aria-hidden="true"></span>
+            <span class="hkdm-picker__fill" aria-hidden="true"></span>
+            <input type="color" class="hkdm-picker__hex" value="<?php echo esc_attr($ui['hex']); ?>" aria-label="<?php esc_attr_e('Couleur', 'hakou-dark-mode'); ?>">
+            <input type="range" class="hkdm-picker__alpha" min="0" max="100" value="<?php echo esc_attr((string) (int) $ui['opacity']); ?>" aria-label="<?php esc_attr_e('Opacité', 'hakou-dark-mode'); ?>">
         </div>
-        <code class="ogdm-picker__hint"><?php echo esc_html($ui['css']); ?></code>
+        <code class="hkdm-picker__hint"><?php echo esc_html($ui['css']); ?></code>
     </div>
     <?php
 }
 
-function ogdm_settings_page() {
+function hkdm_settings_page() {
     if (!current_user_can('manage_options')) {
         return;
     }
 
     // Option admin : inverser uniquement les libellés (sombre -> claire), sans impacter la logique.
-    if (isset($_POST['ogdm_toggle_wording']) && isset($_POST['ogdm_wording_nonce'])
-        && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ogdm_wording_nonce'])), 'ogdm_toggle_wording')) {
-        $use_claire_labels = isset($_POST['ogdm_wording_light']) ? (bool) $_POST['ogdm_wording_light'] : false;
-        update_option('ogdm_admin_use_claire_labels', $use_claire_labels ? 1 : 0);
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Préférence d’affichage admin mise à jour.', 'og-elementor-dark-mode') . '</p></div>';
+    if (isset($_POST['hkdm_toggle_wording']) && isset($_POST['hkdm_wording_nonce'])
+        && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['hkdm_wording_nonce'])), 'hkdm_toggle_wording')) {
+        $use_claire_labels = isset($_POST['hkdm_wording_light']) ? (bool) $_POST['hkdm_wording_light'] : false;
+        update_option('hkdm_admin_use_claire_labels', $use_claire_labels ? 1 : 0);
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Préférence d’affichage admin mise à jour.', 'hakou-dark-mode') . '</p></div>';
     }
 
-    if (isset($_POST['ogdm_save']) && isset($_POST['ogdm_nonce'])
-        && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ogdm_nonce'])), 'ogdm_save_settings')) {
+    if (isset($_POST['hkdm_save']) && isset($_POST['hkdm_nonce'])
+        && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['hkdm_nonce'])), 'hkdm_save_settings')) {
 
-        $color_map = ogdm_save_color_map_from_post(
+        $color_map = hkdm_save_color_map_from_post(
             isset($_POST['dark_color']) && is_array($_POST['dark_color']) ? wp_unslash($_POST['dark_color']) : []
         );
 
-        $button_color_map = ogdm_save_color_map_from_post(
+        $button_color_map = hkdm_save_color_map_from_post(
             isset($_POST['dark_button_color']) && is_array($_POST['dark_button_color']) ? wp_unslash($_POST['dark_button_color']) : []
         );
 
-        $acf_color_map = ogdm_save_color_map_from_post(
+        $acf_color_map = hkdm_save_color_map_from_post(
             isset($_POST['dark_acf_color']) && is_array($_POST['dark_acf_color']) ? wp_unslash($_POST['dark_acf_color']) : []
         );
 
-        update_option('ogdm_settings', [
+        update_option('hkdm_settings', [
             'color_map' => $color_map,
             'button_color_map' => $button_color_map,
             'acf_color_map' => $acf_color_map,
         ]);
 
-        OGDM_ACF_Term_Colors::clear_cache();
+        HKDM_ACF_Term_Colors::clear_cache();
 
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Réglages enregistrés.', 'og-elementor-dark-mode') . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Réglages enregistrés.', 'hakou-dark-mode') . '</p></div>';
     }
 
-    $settings = get_option('ogdm_settings', []);
+    $settings = get_option('hkdm_settings', []);
     $saved_map = isset($settings['color_map']) && is_array($settings['color_map'])
         ? $settings['color_map']
         : [];
@@ -743,103 +759,103 @@ function ogdm_settings_page() {
     $saved_acf_map = isset($settings['acf_color_map']) && is_array($settings['acf_color_map'])
         ? $settings['acf_color_map']
         : [];
-    $kit_colors = ogdm_get_elementor_kit_colors();
-    $kit_button_colors = ogdm_get_elementor_kit_button_colors();
-    $acf_term_colors = OGDM_ACF_Term_Colors::scan_unique_colors();
-    $acf_sources = OGDM_ACF_Term_Colors::get_sources();
-    $use_claire_labels = (bool) get_option('ogdm_admin_use_claire_labels', 0);
+    $kit_colors = hkdm_get_elementor_kit_colors();
+    $kit_button_colors = hkdm_get_elementor_kit_button_colors();
+    $acf_term_colors = HKDM_ACF_Term_Colors::scan_unique_colors();
+    $acf_sources = HKDM_ACF_Term_Colors::get_sources();
+    $use_claire_labels = (bool) get_option('hkdm_admin_use_claire_labels', 0);
 
     $version_label = $use_claire_labels
-        ? __('version claire', 'og-elementor-dark-mode')
-        : __('version sombre', 'og-elementor-dark-mode');
+        ? __('version claire', 'hakou-dark-mode')
+        : __('version sombre', 'hakou-dark-mode');
     $mode_label = $use_claire_labels
-        ? __('mode claire', 'og-elementor-dark-mode')
-        : __('mode sombre', 'og-elementor-dark-mode');
+        ? __('mode claire', 'hakou-dark-mode')
+        : __('mode sombre', 'hakou-dark-mode');
     $Mode_label = $use_claire_labels
-        ? __('Mode claire', 'og-elementor-dark-mode')
-        : __('Mode sombre', 'og-elementor-dark-mode');
+        ? __('Mode claire', 'hakou-dark-mode')
+        : __('Mode sombre', 'hakou-dark-mode');
 
     ?>
     <div class="wrap">
-        <h1><?php echo esc_html__('Hakou Dark Mode', 'og-elementor-dark-mode'); ?></h1>
+        <h1><?php echo esc_html__('Hakou Dark Mode', 'hakou-dark-mode'); ?></h1>
 
         <?php if (!class_exists('\Elementor\Plugin')) : ?>
             <div class="notice notice-warning"><p>
-                <?php echo esc_html__('Elementor doit être actif pour lire les couleurs du kit.', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html__('Elementor doit être actif pour lire les couleurs du kit.', 'hakou-dark-mode'); ?>
             </p></div>
         <?php endif; ?>
 
         <form method="post" style="margin:12px 0 0;">
-            <?php wp_nonce_field('ogdm_toggle_wording', 'ogdm_wording_nonce'); ?>
-            <input type="hidden" name="ogdm_toggle_wording" value="1" />
-            <div class="ogdm-wording-switch">
-                <label class="ogdm-switch" aria-label="<?php echo esc_attr__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'og-elementor-dark-mode'); ?>">
+            <?php wp_nonce_field('hkdm_toggle_wording', 'hkdm_wording_nonce'); ?>
+            <input type="hidden" name="hkdm_toggle_wording" value="1" />
+            <div class="hkdm-wording-switch">
+                <label class="hkdm-switch" aria-label="<?php echo esc_attr__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'hakou-dark-mode'); ?>">
                     <input
                         type="checkbox"
-                        name="ogdm_wording_light"
+                        name="hkdm_wording_light"
                         value="1"
                         <?php checked($use_claire_labels, true); ?>
                     />
-                    <span class="ogdm-switch__slider" aria-hidden="true"></span>
+                    <span class="hkdm-switch__slider" aria-hidden="true"></span>
                 </label>
-                <span class="ogdm-wording-switch__text">
-                    <?php echo esc_html__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'og-elementor-dark-mode'); ?>
+                <span class="hkdm-wording-switch__text">
+                    <?php echo esc_html__('Afficher “sombre” comme “claire” (libellés admin uniquement).', 'hakou-dark-mode'); ?>
                 </span>
             </div>
             <p style="margin-top:8px;">
-                <button type="submit" class="button"><?php echo esc_html__('Appliquer', 'og-elementor-dark-mode'); ?></button>
+                <button type="submit" class="button"><?php echo esc_html__('Appliquer', 'hakou-dark-mode'); ?></button>
             </p>
         </form>
 
         <form method="post">
-            <?php wp_nonce_field('ogdm_save_settings', 'ogdm_nonce'); ?>
+            <?php wp_nonce_field('hkdm_save_settings', 'hkdm_nonce'); ?>
 
             <h2 class="title"><?php echo esc_html('Couleurs globales → ' . $version_label); ?></h2>
             <p class="description">
-                <?php echo esc_html('Ces couleurs ne s’appliquent que lorsque le site est en ' . $mode_label . ' (classe og-dark-mode). En mode clair, ce sont les couleurs du kit Elementor qui comptent.'); ?>
-                <?php echo esc_html__(' Si un bouton Elementor reste foncé en mode clair, vérifiez sa couleur globale dans Site Settings (ex. --e-global-color-…).', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html('Ces couleurs ne s’appliquent que lorsque le site est en ' . $mode_label . ' (classe hakou-dark-mode). En mode clair, ce sont les couleurs du kit Elementor qui comptent.'); ?>
+                <?php echo esc_html__(' Si un bouton Elementor reste foncé en mode clair, vérifiez sa couleur globale dans Site Settings (ex. --e-global-color-…).', 'hakou-dark-mode'); ?>
                 <?php echo esc_html(' Par widget : onglet Style → section « ' . $Mode_label . ' » (sous chaque bloc de style qui contient des couleurs).'); ?>
-                <?php echo esc_html__(' Switch : widget « Dark Mode Switch ».', 'og-elementor-dark-mode'); ?>
-                <?php echo esc_html__(' Pipette : clic sur la pastille (couleur + transparence en bas).', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html__(' Switch : widget « Dark Mode Switch ».', 'hakou-dark-mode'); ?>
+                <?php echo esc_html__(' Pipette : clic sur la pastille (couleur + transparence en bas).', 'hakou-dark-mode'); ?>
             </p>
             <p style="margin-top:8px;">
-                <button type="button" class="button" id="ogdm-reset-colors-default"><?php echo esc_html__('Défaut (couleurs globales du kit)', 'og-elementor-dark-mode'); ?></button>
-                <button type="button" class="button" id="ogdm-reset-button-colors-default"><?php echo esc_html__('Défaut (couleurs bouton du kit)', 'og-elementor-dark-mode'); ?></button>
-                <button type="button" class="button" id="ogdm-reset-acf-colors-default"><?php echo esc_html__('Défaut (couleurs ACF détectées)', 'og-elementor-dark-mode'); ?></button>
+                <button type="button" class="button" id="hkdm-reset-colors-default"><?php echo esc_html__('Défaut (couleurs globales du kit)', 'hakou-dark-mode'); ?></button>
+                <button type="button" class="button" id="hkdm-reset-button-colors-default"><?php echo esc_html__('Défaut (couleurs bouton du kit)', 'hakou-dark-mode'); ?></button>
+                <button type="button" class="button" id="hkdm-reset-acf-colors-default"><?php echo esc_html__('Défaut (couleurs ACF détectées)', 'hakou-dark-mode'); ?></button>
             </p>
 
-            <table class="widefat striped ogdm-admin-table ogdm-admin-table--globals">
+            <table class="widefat striped hkdm-admin-table hkdm-admin-table--globals">
                 <thead>
                     <tr>
-                        <th><?php echo esc_html__('Couleur kit', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Variable CSS', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Couleur kit', 'hakou-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Variable CSS', 'hakou-dark-mode'); ?></th>
                         <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($kit_colors === []) : ?>
                         <tr>
-                            <td colspan="3"><?php echo esc_html__('Aucune couleur de kit trouvée.', 'og-elementor-dark-mode'); ?></td>
+                            <td colspan="3"><?php echo esc_html__('Aucune couleur de kit trouvée.', 'hakou-dark-mode'); ?></td>
                         </tr>
                     <?php else : ?>
                         <?php foreach ($kit_colors as $row) :
                             $id = $row['id'];
-                            $kit_default = ogdm_kit_color_admin_default($row['color']);
-                            $kit_hex = ogdm_normalize_color_to_hex($row['color']);
+                            $kit_default = hkdm_kit_color_admin_default($row['color']);
+                            $kit_hex = hkdm_normalize_color_to_hex($row['color']);
                             $saved_css = isset($saved_map[$id]) ? (string) $saved_map[$id] : '';
                             if ($saved_css === '') {
                                 $saved_css = $kit_default;
                             }
-                            $ui = ogdm_split_saved_color_for_ui($saved_css, $kit_hex);
+                            $ui = hkdm_split_saved_color_for_ui($saved_css, $kit_hex);
                             ?>
                             <tr>
-                                <td class="ogdm-col-kit">
-                                    <span class="ogdm-kit-title"><?php echo esc_html($row['title']); ?></span>
-                                    <span class="ogdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
+                                <td class="hkdm-col-kit">
+                                    <span class="hkdm-kit-title"><?php echo esc_html($row['title']); ?></span>
+                                    <span class="hkdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
                                 </td>
-                                <td><code class="ogdm-var-code">--e-global-color-<?php echo esc_html($id); ?></code></td>
-                                <td class="ogdm-col-picker">
-                                    <?php ogdm_render_admin_color_picker('dark_color', $id, $ui, $kit_default, $kit_hex); ?>
+                                <td><code class="hkdm-var-code">--e-global-color-<?php echo esc_html($id); ?></code></td>
+                                <td class="hkdm-col-picker">
+                                    <?php hkdm_render_admin_color_picker('dark_color', $id, $ui, $kit_default, $kit_hex); ?>
                                 </td>
                             </tr>
                             
@@ -850,41 +866,41 @@ function ogdm_settings_page() {
 
             <h2 class="title" style="margin-top:28px;"><?php echo esc_html('Couleurs bouton Elementor → ' . $version_label); ?></h2>
             <p class="description">
-                <?php echo esc_html__('Valeurs du kit (Site Settings → Theme Style → Bouton). Le switch dark mode est exclu : son style reste dans le widget.', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html__('Valeurs du kit (Site Settings → Theme Style → Bouton). Le switch dark mode est exclu : son style reste dans le widget.', 'hakou-dark-mode'); ?>
             </p>
 
-            <table class="widefat striped ogdm-admin-table ogdm-admin-table--buttons">
+            <table class="widefat striped hkdm-admin-table hkdm-admin-table--buttons">
                 <thead>
                     <tr>
-                        <th><?php echo esc_html__('Réglage kit', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Couleur kit', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Réglage kit', 'hakou-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Couleur kit', 'hakou-dark-mode'); ?></th>
                         <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($kit_button_colors === []) : ?>
                         <tr>
-                            <td colspan="3"><?php echo esc_html__('Aucune couleur bouton trouvée dans le kit.', 'og-elementor-dark-mode'); ?></td>
+                            <td colspan="3"><?php echo esc_html__('Aucune couleur bouton trouvée dans le kit.', 'hakou-dark-mode'); ?></td>
                         </tr>
                     <?php else : ?>
                         <?php foreach ($kit_button_colors as $row) :
                             $id = $row['id'];
-                            $kit_default = ogdm_kit_color_admin_default($row['color']);
-                            $kit_hex = ogdm_normalize_color_to_hex($row['color']);
+                            $kit_default = hkdm_kit_color_admin_default($row['color']);
+                            $kit_hex = hkdm_normalize_color_to_hex($row['color']);
                             $saved_css = isset($saved_button_map[$id]) ? (string) $saved_button_map[$id] : '';
                             if ($saved_css === '') {
                                 $saved_css = $kit_default;
                             }
-                            $ui = ogdm_split_saved_color_for_ui($saved_css, $kit_hex);
+                            $ui = hkdm_split_saved_color_for_ui($saved_css, $kit_hex);
                             ?>
                             <tr>
-                                <td class="ogdm-col-kit">
-                                    <span class="ogdm-kit-title"><?php echo esc_html($row['title']); ?></span>
-                                    <span class="ogdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
+                                <td class="hkdm-col-kit">
+                                    <span class="hkdm-kit-title"><?php echo esc_html($row['title']); ?></span>
+                                    <span class="hkdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
                                 </td>
-                                <td><span class="ogdm-kit-ref"><?php echo esc_html($row['color']); ?></span></td>
-                                <td class="ogdm-col-picker">
-                                    <?php ogdm_render_admin_color_picker('dark_button_color', $id, $ui, $kit_default, $kit_hex); ?>
+                                <td><span class="hkdm-kit-ref"><?php echo esc_html($row['color']); ?></span></td>
+                                <td class="hkdm-col-picker">
+                                    <?php hkdm_render_admin_color_picker('dark_button_color', $id, $ui, $kit_default, $kit_hex); ?>
                                 </td>
                             </tr>
                             
@@ -895,7 +911,7 @@ function ogdm_settings_page() {
 
             <h2 class="title" style="margin-top:28px;"><?php echo esc_html('Couleurs ACF (taxonomies) → ' . $version_label); ?></h2>
             <p class="description">
-                <?php echo esc_html__('Couleurs détectées automatiquement sur les termes via les champs color_picker ACF (ex. couleur de catégorie). Utilisées pour les variables CSS dynamiques (--gl-term-color, --gl-current-term-color, etc.).', 'og-elementor-dark-mode'); ?>
+                <?php echo esc_html__('Couleurs détectées automatiquement sur les termes via les champs color_picker ACF (ex. couleur de catégorie). Utilisées pour les variables CSS dynamiques (--gl-term-color, --gl-current-term-color, etc.).', 'hakou-dark-mode'); ?>
                 <?php if ($acf_sources !== []) : ?>
                     <?php
                     $source_labels = array_map(function ($s) {
@@ -904,61 +920,61 @@ function ogdm_settings_page() {
                     }, $acf_sources);
                     ?>
                     <br>
-                    <strong><?php echo esc_html__('Champs scannés :', 'og-elementor-dark-mode'); ?></strong>
+                    <strong><?php echo esc_html__('Champs scannés :', 'hakou-dark-mode'); ?></strong>
                     <?php echo esc_html(implode(' · ', $source_labels)); ?>
                 <?php endif; ?>
             </p>
 
             <?php if (!function_exists('get_field')) : ?>
                 <div class="notice notice-warning inline"><p>
-                    <?php echo esc_html__('ACF doit être actif pour détecter les couleurs de termes.', 'og-elementor-dark-mode'); ?>
+                    <?php echo esc_html__('ACF doit être actif pour détecter les couleurs de termes.', 'hakou-dark-mode'); ?>
                 </p></div>
             <?php endif; ?>
 
-            <table class="widefat striped ogdm-admin-table ogdm-admin-table--acf">
+            <table class="widefat striped hkdm-admin-table hkdm-admin-table--acf">
                 <thead>
                     <tr>
-                        <th><?php echo esc_html__('Couleur ACF (mode clair)', 'og-elementor-dark-mode'); ?></th>
-                        <th><?php echo esc_html__('Source', 'og-elementor-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Couleur ACF (mode clair)', 'hakou-dark-mode'); ?></th>
+                        <th><?php echo esc_html__('Source', 'hakou-dark-mode'); ?></th>
                         <th><?php echo esc_html('Couleur en ' . $mode_label); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($acf_term_colors === []) : ?>
                         <tr>
-                            <td colspan="3"><?php echo esc_html__('Aucune couleur ACF trouvée sur les termes.', 'og-elementor-dark-mode'); ?></td>
+                            <td colspan="3"><?php echo esc_html__('Aucune couleur ACF trouvée sur les termes.', 'hakou-dark-mode'); ?></td>
                         </tr>
                     <?php else : ?>
                         <?php foreach ($acf_term_colors as $row) :
                             $id = $row['id'];
                             $kit_default = !empty($row['dark_default'])
-                                ? ogdm_kit_color_admin_default($row['dark_default'])
-                                : ogdm_kit_color_admin_default($row['color']);
-                            $kit_hex = ogdm_normalize_color_to_hex($row['color']);
+                                ? hkdm_kit_color_admin_default($row['dark_default'])
+                                : hkdm_kit_color_admin_default($row['color']);
+                            $kit_hex = hkdm_normalize_color_to_hex($row['color']);
                             $saved_css = isset($saved_acf_map[$id]) ? (string) $saved_acf_map[$id] : '';
                             if ($saved_css === '') {
                                 $saved_css = $kit_default;
                             }
-                            $ui = ogdm_split_saved_color_for_ui($saved_css, $kit_hex);
+                            $ui = hkdm_split_saved_color_for_ui($saved_css, $kit_hex);
                             $terms_preview = implode(', ', array_slice($row['terms'], 0, 3));
                             if (count($row['terms']) > 3) {
                                 $terms_preview .= '…';
                             }
                             ?>
                             <tr>
-                                <td class="ogdm-col-kit">
-                                    <span class="ogdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
-                                    <code class="ogdm-var-code"><?php echo esc_html($row['color']); ?></code>
+                                <td class="hkdm-col-kit">
+                                    <span class="hkdm-kit-swatch" style="background-color:<?php echo esc_attr($row['color']); ?>" title="<?php echo esc_attr($row['color']); ?>"></span>
+                                    <code class="hkdm-var-code"><?php echo esc_html($row['color']); ?></code>
                                 </td>
                                 <td>
-                                    <span class="ogdm-kit-title"><?php echo esc_html($row['label']); ?></span>
-                                    <span class="ogdm-kit-ref"><?php echo esc_html($row['taxonomy'] . ' · ' . $row['field']); ?></span>
+                                    <span class="hkdm-kit-title"><?php echo esc_html($row['label']); ?></span>
+                                    <span class="hkdm-kit-ref"><?php echo esc_html($row['taxonomy'] . ' · ' . $row['field']); ?></span>
                                     <?php if ($terms_preview !== '') : ?>
-                                        <br><span class="ogdm-kit-ref"><?php echo esc_html($terms_preview); ?></span>
+                                        <br><span class="hkdm-kit-ref"><?php echo esc_html($terms_preview); ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="ogdm-col-picker">
-                                    <?php ogdm_render_admin_color_picker('dark_acf_color', $id, $ui, $kit_default, $kit_hex); ?>
+                                <td class="hkdm-col-picker">
+                                    <?php hkdm_render_admin_color_picker('dark_acf_color', $id, $ui, $kit_default, $kit_hex); ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -967,7 +983,7 @@ function ogdm_settings_page() {
             </table>
 
             <p style="margin-top:20px;">
-                <button class="button button-primary" name="ogdm_save" value="1"><?php echo esc_html__('Enregistrer', 'og-elementor-dark-mode'); ?></button>
+                <button class="button button-primary" name="hkdm_save" value="1"><?php echo esc_html__('Enregistrer', 'hakou-dark-mode'); ?></button>
             </p>
         </form>
     </div>
@@ -977,7 +993,7 @@ function ogdm_settings_page() {
 /**
  * @param mixed $raw
  */
-function ogdm_switch_sanitize_icon_apply($raw) {
+function hkdm_switch_sanitize_icon_apply($raw) {
     $allowed = ['fill', 'stroke', 'both'];
     $raw = sanitize_key((string) $raw);
 
@@ -990,16 +1006,16 @@ function ogdm_switch_sanitize_icon_apply($raw) {
  * @param 'light'|'dark' $face
  * @return array<string, string>
  */
-function ogdm_switch_widget_icon_color_selectors($face) {
-    $face_class = $face === 'dark' ? '.og-dark-toggle__face--dark' : '.og-dark-toggle__face--light';
+function hkdm_switch_widget_icon_color_selectors($face) {
+    $face_class = $face === 'dark' ? '.hakou-dark-toggle__face--dark' : '.hakou-dark-toggle__face--light';
     $shape_tags = ['path', 'circle', 'rect', 'polygon', 'ellipse', 'line'];
     $selectors = [];
 
     foreach (['fill', 'stroke', 'both'] as $apply) {
-        $root = '{{WRAPPER}}.ogdm-icon-apply-' . $apply . ' ' . $face_class . ' .og-dark-toggle__el-icon';
+        $root = '{{WRAPPER}}.hkdm-icon-apply-' . $apply . ' ' . $face_class . ' .hakou-dark-toggle__el-icon';
 
         $selectors[$root . ' i'] = 'color: {{VALUE}} !important;';
-        $selectors[$root . ' .og-dark-toggle__emoji'] = 'color: {{VALUE}} !important;';
+        $selectors[$root . ' .hakou-dark-toggle__emoji'] = 'color: {{VALUE}} !important;';
 
         if ($apply === 'fill' || $apply === 'both') {
             $selectors[$root . ' svg'] = 'color: {{VALUE}} !important; fill: {{VALUE}} !important;';
@@ -1031,37 +1047,37 @@ function ogdm_switch_widget_icon_color_selectors($face) {
 /**
  * @param array<string, mixed> $atts
  */
-function ogdm_render_switch_markup($atts = []) {
-    $icon_light = ogdm_sanitize_elementor_icon($atts['icon_light'] ?? []);
-    $icon_dark = ogdm_sanitize_elementor_icon($atts['icon_dark'] ?? []);
+function hkdm_render_switch_markup($atts = []) {
+    $icon_light = hkdm_sanitize_elementor_icon($atts['icon_light'] ?? []);
+    $icon_dark = hkdm_sanitize_elementor_icon($atts['icon_dark'] ?? []);
 
-    ogdm_enqueue_elementor_icon_fonts($icon_light);
-    ogdm_enqueue_elementor_icon_fonts($icon_dark);
+    hkdm_enqueue_elementor_icon_fonts($icon_light);
+    hkdm_enqueue_elementor_icon_fonts($icon_dark);
 
-    $inner_light = ogdm_switch_face_inner_html($icon_light, '🌙');
-    $inner_dark = ogdm_switch_face_inner_html($icon_dark, '☀️');
+    $inner_light = hkdm_switch_face_inner_html($icon_light, '🌙');
+    $inner_dark = hkdm_switch_face_inner_html($icon_dark, '☀️');
 
-    $inner = '<span class="og-dark-toggle__face og-dark-toggle__face--light">' . $inner_light . '</span>'
-        . '<span class="og-dark-toggle__face og-dark-toggle__face--dark">' . $inner_dark . '</span>';
+    $inner = '<span class="hakou-dark-toggle__face hakou-dark-toggle__face--light">' . $inner_light . '</span>'
+        . '<span class="hakou-dark-toggle__face hakou-dark-toggle__face--dark">' . $inner_dark . '</span>';
 
-    $default_label = __('Basculer le mode sombre', 'og-elementor-dark-mode');
+    $default_label = __('Basculer le mode sombre', 'hakou-dark-mode');
     $label = isset($atts['label']) ? trim((string) $atts['label']) : '';
     if ($label === '') {
         $label = $default_label;
     }
 
-    $classes = 'og-dark-toggle';
+    $classes = 'hakou-dark-toggle';
     if (!empty($atts['from_widget'])) {
-        $classes .= ' og-dark-toggle--widget';
+        $classes .= ' hakou-dark-toggle--widget';
     }
 
     return '<button type="button" class="' . esc_attr($classes) . '" aria-label="' . esc_attr($label) . '">' . $inner . '</button>';
 }
 
-add_shortcode('og_dark_switch', function ($atts) {
-    $atts = shortcode_atts(['label' => ''], $atts, 'og_dark_switch');
+add_shortcode('hakou_dark_switch', function ($atts) {
+    $atts = shortcode_atts(['label' => ''], $atts, 'hakou_dark_switch');
 
-    return ogdm_render_switch_markup($atts);
+    return hkdm_render_switch_markup($atts);
 });
 
 /*
@@ -1075,14 +1091,14 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
         return;
     }
 
-    if (!class_exists('OGDM_Switch_Widget')) {
-        class OGDM_Switch_Widget extends \Elementor\Widget_Base {
+    if (!class_exists('HKDM_Switch_Widget')) {
+        class HKDM_Switch_Widget extends \Elementor\Widget_Base {
             public function get_name() {
-                return 'ogdm-switch';
+                return 'hkdm-switch';
             }
 
             public function get_title() {
-                return __('Dark Mode Switch', 'og-elementor-dark-mode');
+                return __('Dark Mode Switch', 'hakou-dark-mode');
             }
 
             public function get_icon() {
@@ -1094,22 +1110,22 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
             }
 
             public function get_keywords() {
-                return ['dark', 'mode', 'toggle', 'switch', 'og', 'sombre', 'lune'];
+                return ['dark', 'mode', 'toggle', 'switch', 'hakou', 'sombre', 'lune'];
             }
 
             protected function register_controls() {
                 $this->start_controls_section('section_content', [
-                    'label' => __('Contenu', 'og-elementor-dark-mode'),
+                    'label' => __('Contenu', 'hakou-dark-mode'),
                 ]);
 
                 $this->add_control('aria_label', [
-                    'label' => __('Libellé accessibilité', 'og-elementor-dark-mode'),
+                    'label' => __('Libellé accessibilité', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::TEXT,
-                    'default' => __('Basculer le mode sombre', 'og-elementor-dark-mode'),
+                    'default' => __('Basculer le mode sombre', 'hakou-dark-mode'),
                 ]);
 
                 $this->add_control('icon_light', [
-                    'label' => __('Icône (site en mode clair)', 'og-elementor-dark-mode'),
+                    'label' => __('Icône (site en mode clair)', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::ICONS,
                     'default' => [
                         'value' => 'fas fa-moon',
@@ -1118,7 +1134,7 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                 ]);
 
                 $this->add_control('icon_dark', [
-                    'label' => __('Icône (site en mode sombre)', 'og-elementor-dark-mode'),
+                    'label' => __('Icône (site en mode sombre)', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::ICONS,
                     'default' => [
                         'value' => 'fas fa-sun',
@@ -1128,16 +1144,16 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
 
                 $this->end_controls_section();
 
-                $btn_light = 'body:not(.og-dark-mode) {{WRAPPER}} .og-dark-toggle';
-                $btn_dark = 'body.og-dark-mode {{WRAPPER}} .og-dark-toggle';
+                $btn_light = 'body:not(.hakou-dark-mode) {{WRAPPER}} .hakou-dark-toggle';
+                $btn_dark = 'body.hakou-dark-mode {{WRAPPER}} .hakou-dark-toggle';
 
                 $this->start_controls_section('section_style', [
-                    'label' => __('Apparence', 'og-elementor-dark-mode'),
+                    'label' => __('Apparence', 'hakou-dark-mode'),
                     'tab' => \Elementor\Controls_Manager::TAB_STYLE,
                 ]);
 
                 $this->add_responsive_control('button_size', [
-                    'label' => __('Taille du bouton', 'og-elementor-dark-mode'),
+                    'label' => __('Taille du bouton', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::SLIDER,
                     'size_units' => ['px'],
                     'range' => [
@@ -1148,12 +1164,12 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                         'unit' => 'px',
                     ],
                     'selectors' => [
-                        '{{WRAPPER}} .og-dark-toggle' => 'width: {{SIZE}}{{UNIT}} !important; height: {{SIZE}}{{UNIT}} !important; min-width: 0 !important; min-height: 0 !important;',
+                        '{{WRAPPER}} .hakou-dark-toggle' => 'width: {{SIZE}}{{UNIT}} !important; height: {{SIZE}}{{UNIT}} !important; min-width: 0 !important; min-height: 0 !important;',
                     ],
                 ]);
 
                 $this->add_control('button_radius', [
-                    'label' => __('Coins arrondis', 'og-elementor-dark-mode'),
+                    'label' => __('Coins arrondis', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::SLIDER,
                     'size_units' => ['px', '%'],
                     'range' => [
@@ -1165,12 +1181,12 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                         'unit' => '%',
                     ],
                     'selectors' => [
-                        '{{WRAPPER}} .og-dark-toggle' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
+                        '{{WRAPPER}} .hakou-dark-toggle' => 'border-radius: {{SIZE}}{{UNIT}} !important;',
                     ],
                 ]);
 
                 $this->add_responsive_control('icon_size', [
-                    'label' => __('Taille de l’icône', 'og-elementor-dark-mode'),
+                    'label' => __('Taille de l’icône', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::SLIDER,
                     'size_units' => ['px', 'em'],
                     'range' => [
@@ -1182,35 +1198,35 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                         'unit' => 'px',
                     ],
                     'selectors' => [
-                        '{{WRAPPER}} .og-dark-toggle .og-dark-toggle__el-icon' => 'font-size: {{SIZE}}{{UNIT}};',
-                        '{{WRAPPER}} .og-dark-toggle .og-dark-toggle__el-icon svg' => 'width: 1em; height: 1em;',
-                        '{{WRAPPER}} .og-dark-toggle .og-dark-toggle__emoji' => 'font-size: {{SIZE}}{{UNIT}};',
+                        '{{WRAPPER}} .hakou-dark-toggle .hakou-dark-toggle__el-icon' => 'font-size: {{SIZE}}{{UNIT}};',
+                        '{{WRAPPER}} .hakou-dark-toggle .hakou-dark-toggle__el-icon svg' => 'width: 1em; height: 1em;',
+                        '{{WRAPPER}} .hakou-dark-toggle .hakou-dark-toggle__emoji' => 'font-size: {{SIZE}}{{UNIT}};',
                     ],
                 ]);
 
                 $this->add_control('icon_color_apply', [
-                    'label' => __('SVG : appliquer la couleur sur', 'og-elementor-dark-mode'),
+                    'label' => __('SVG : appliquer la couleur sur', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::SELECT,
                     'default' => 'both',
                     'options' => [
-                        'fill' => __('Remplissage (fill)', 'og-elementor-dark-mode'),
-                        'stroke' => __('Contour (stroke)', 'og-elementor-dark-mode'),
-                        'both' => __('Fill + contour', 'og-elementor-dark-mode'),
+                        'fill' => __('Remplissage (fill)', 'hakou-dark-mode'),
+                        'stroke' => __('Contour (stroke)', 'hakou-dark-mode'),
+                        'both' => __('Fill + contour', 'hakou-dark-mode'),
                     ],
                     'description' => __(
                         'Pour les icônes téléversées (SVG). Font Awesome : la couleur s’applique toujours au glyphe.',
-                        'og-elementor-dark-mode'
+                        'hakou-dark-mode'
                     ),
                 ]);
 
                 $this->start_controls_tabs('style_mode_tabs');
 
                 $this->start_controls_tab('style_tab_light', [
-                    'label' => __('Mode clair', 'og-elementor-dark-mode'),
+                    'label' => __('Mode clair', 'hakou-dark-mode'),
                 ]);
 
                 $this->add_control('button_bg_light', [
-                    'label' => __('Fond du bouton', 'og-elementor-dark-mode'),
+                    'label' => __('Fond du bouton', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'default' => '#ffffff',
                     'selectors' => [
@@ -1219,7 +1235,7 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                 ]);
 
                 $this->add_control('button_border_color_light', [
-                    'label' => __('Bordure', 'og-elementor-dark-mode'),
+                    'label' => __('Bordure', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'selectors' => [
                         $btn_light => 'border: 1px solid {{VALUE}} !important;',
@@ -1227,20 +1243,20 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                 ]);
 
                 $this->add_control('icon_color_light', [
-                    'label' => __('Couleur de l’icône', 'og-elementor-dark-mode'),
+                    'label' => __('Couleur de l’icône', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'default' => '#111111',
-                    'selectors' => ogdm_switch_widget_icon_color_selectors('light'),
+                    'selectors' => hkdm_switch_widget_icon_color_selectors('light'),
                 ]);
 
                 $this->end_controls_tab();
 
                 $this->start_controls_tab('style_tab_dark', [
-                    'label' => __('Mode sombre', 'og-elementor-dark-mode'),
+                    'label' => __('Mode sombre', 'hakou-dark-mode'),
                 ]);
 
                 $this->add_control('button_bg_dark', [
-                    'label' => __('Fond du bouton', 'og-elementor-dark-mode'),
+                    'label' => __('Fond du bouton', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'default' => '#111111',
                     'selectors' => [
@@ -1249,7 +1265,7 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                 ]);
 
                 $this->add_control('button_border_color_dark', [
-                    'label' => __('Bordure', 'og-elementor-dark-mode'),
+                    'label' => __('Bordure', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'selectors' => [
                         $btn_dark => 'border: 1px solid {{VALUE}} !important;',
@@ -1257,10 +1273,10 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
                 ]);
 
                 $this->add_control('icon_color_dark', [
-                    'label' => __('Couleur de l’icône', 'og-elementor-dark-mode'),
+                    'label' => __('Couleur de l’icône', 'hakou-dark-mode'),
                     'type' => \Elementor\Controls_Manager::COLOR,
                     'default' => '#ffffff',
-                    'selectors' => ogdm_switch_widget_icon_color_selectors('dark'),
+                    'selectors' => hkdm_switch_widget_icon_color_selectors('dark'),
                 ]);
 
                 $this->end_controls_tab();
@@ -1273,10 +1289,10 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
             protected function render() {
                 $settings = $this->get_settings_for_display();
 
-                $icon_apply = ogdm_switch_sanitize_icon_apply($settings['icon_color_apply'] ?? 'both');
-                $this->add_render_attribute('_wrapper', 'class', 'ogdm-icon-apply-' . $icon_apply);
+                $icon_apply = hkdm_switch_sanitize_icon_apply($settings['icon_color_apply'] ?? 'both');
+                $this->add_render_attribute('_wrapper', 'class', 'hkdm-icon-apply-' . $icon_apply);
 
-                echo ogdm_render_switch_markup([
+                echo hkdm_render_switch_markup([
                     'label' => isset($settings['aria_label']) ? trim((string) $settings['aria_label']) : '',
                     'icon_light' => $settings['icon_light'] ?? [],
                     'icon_dark' => $settings['icon_dark'] ?? [],
@@ -1286,5 +1302,5 @@ add_action('elementor/widgets/register', function ($widgets_manager) {
         }
     }
 
-    $widgets_manager->register(new OGDM_Switch_Widget());
+    $widgets_manager->register(new HKDM_Switch_Widget());
 });

@@ -1,13 +1,19 @@
 (function () {
-  var cfg = window.ogdmSettings || {};
-  var darkClass = cfg.dark_class || 'og-dark-mode';
-  var storageKey = cfg.storage_key || 'ogdm_dark_mode';
+  var cfg = window.hkdmSettings || {};
+  var darkClass = cfg.dark_class || 'hakou-dark-mode';
+  var storageKey = cfg.storage_key || 'hkdm_dark_mode';
   var acfColorMap = cfg.acf_color_map || {};
   var dynamicCssVars = cfg.dynamic_css_vars || ['--gl-term-color', '--gl-current-term-color'];
 
   function isDarkOn() {
     try {
       var stored = localStorage.getItem(storageKey);
+      if (stored === null && storageKey === 'hkdm_dark_mode') {
+        stored = localStorage.getItem('ogdm_dark_mode');
+        if (stored !== null) {
+          localStorage.setItem(storageKey, stored);
+        }
+      }
       if (stored === '1') {
         return true;
       }
@@ -90,7 +96,7 @@
     if (!document.body || !lightValue) {
       return;
     }
-    var attr = 'data-ogdm-light' + varName.replace(/^--/, '--');
+    var attr = 'data-hkdm-light' + varName.replace(/^--/, '--');
     if (!document.body.getAttribute(attr)) {
       document.body.setAttribute(attr, lightValue);
     }
@@ -100,19 +106,19 @@
     if (!document.body) {
       return '';
     }
-    var attr = 'data-ogdm-light' + varName.replace(/^--/, '--');
+    var attr = 'data-hkdm-light' + varName.replace(/^--/, '--');
     return document.body.getAttribute(attr) || '';
   }
 
   function applyMarkerColors(isDark) {
     document.querySelectorAll('[data-term-color]').forEach(function (marker) {
-      var light = marker.getAttribute('data-ogdm-light-color') || marker.getAttribute('data-term-color') || '';
+      var light = marker.getAttribute('data-hkdm-light-color') || marker.getAttribute('data-term-color') || '';
       if (!light) {
         return;
       }
 
-      if (!marker.getAttribute('data-ogdm-light-color')) {
-        marker.setAttribute('data-ogdm-light-color', light);
+      if (!marker.getAttribute('data-hkdm-light-color')) {
+        marker.setAttribute('data-hkdm-light-color', light);
       }
 
       var color = isDark ? resolveDarkColor(light) : light;
@@ -160,7 +166,7 @@
 
   function dispatchModeChanged(on) {
     document.dispatchEvent(
-      new CustomEvent('ogdm:mode-changed', {
+      new CustomEvent('hkdm:mode-changed', {
         detail: { dark: on },
       })
     );
@@ -214,7 +220,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.og-dark-toggle');
+    var btn = e.target.closest('.hakou-dark-toggle');
     if (!btn) {
       return;
     }

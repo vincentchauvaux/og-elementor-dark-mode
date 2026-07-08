@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $root = $PSScriptRoot
-$slug = 'og-elementor-dark-mode'
+$slug = 'hakou-dark-mode'
 $staging = Join-Path $env:TEMP ($slug + '-build')
 $folder = Join-Path $staging $slug
 $zipOut = Join-Path $root ($slug + '.zip')
@@ -13,7 +13,7 @@ if (Test-Path $staging) {
     Remove-Item $staging -Recurse -Force
 }
 New-Item -ItemType Directory -Path $folder -Force | Out-Null
-Copy-Item (Join-Path $root 'opengraphy-dark-mode.php') $folder
+Copy-Item (Join-Path $root 'hakou-dark-mode.php') $folder
 Copy-Item (Join-Path $root 'assets') $folder -Recurse
 if (Test-Path (Join-Path $root 'includes')) {
     Copy-Item (Join-Path $root 'includes') $folder -Recurse

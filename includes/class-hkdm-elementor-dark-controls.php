@@ -7,13 +7,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-final class OGDM_Elementor_Dark_Controls {
-    private const SECTION_PREFIX = 'ogdm_dark_';
-    private const CONTROL_PREFIX = 'ogdm_dark_';
+final class HKDM_Elementor_Dark_Controls {
+    private const SECTION_PREFIX = 'hkdm_dark_';
+    private const CONTROL_PREFIX = 'hkdm_dark_';
 
     /** Widgets déjà gérés manuellement (sections clair/sombre dédiées). */
     private const SKIP_ELEMENTS = [
-        'ogdm-switch',
+        'hkdm-switch',
     ];
 
     public static function init() {
@@ -51,7 +51,7 @@ final class OGDM_Elementor_Dark_Controls {
         $element->start_controls_section(
             self::SECTION_PREFIX . $section_id,
             [
-                'label' => __('Mode sombre', 'og-elementor-dark-mode'),
+                'label' => __('Mode sombre', 'hakou-dark-mode'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -62,8 +62,8 @@ final class OGDM_Elementor_Dark_Controls {
                 'type' => \Elementor\Controls_Manager::RAW_HTML,
                 'raw' => '<p class="elementor-control-field-description">'
                     . esc_html__(
-                        'Ces couleurs s’appliquent lorsque le site est en mode sombre (classe og-dark-mode). Laissez vide pour garder la couleur du mode clair.',
-                        'og-elementor-dark-mode'
+                        'Ces couleurs s’appliquent lorsque le site est en mode sombre (classe hakou-dark-mode). Laissez vide pour garder la couleur du mode clair.',
+                        'hakou-dark-mode'
                     )
                     . '</p>',
             ]
@@ -126,7 +126,7 @@ final class OGDM_Elementor_Dark_Controls {
         $dark_args = [
             'label' => sprintf(
                 /* translators: %s: label of the light mode color control */
-                __('%s — mode sombre', 'og-elementor-dark-mode'),
+                __('%s — mode sombre', 'hakou-dark-mode'),
                 $label
             ),
             'type' => \Elementor\Controls_Manager::COLOR,
@@ -165,7 +165,7 @@ final class OGDM_Elementor_Dark_Controls {
                 continue;
             }
 
-            if (stripos($selector, 'og-dark-mode') !== false) {
+            if (stripos($selector, 'hakou-dark-mode') !== false) {
                 $out[$selector] = $css_rule;
                 continue;
             }
@@ -181,10 +181,10 @@ final class OGDM_Elementor_Dark_Controls {
                 if ($part === '') {
                     continue;
                 }
-                if (stripos($part, 'og-dark-mode') !== false) {
+                if (stripos($part, 'hakou-dark-mode') !== false) {
                     $prefixed[] = $part;
                 } else {
-                    $prefixed[] = 'body.og-dark-mode ' . $part;
+                    $prefixed[] = 'body.hakou-dark-mode ' . $part;
                 }
             }
 

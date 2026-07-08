@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-final class OGDM_ACF_Term_Colors {
+final class HKDM_ACF_Term_Colors {
     /** @var array<int, array<string, string>>|null */
     private static $sources_cache = null;
 
@@ -22,12 +22,12 @@ final class OGDM_ACF_Term_Colors {
     public static function get_dynamic_css_vars() {
         $vars = ['--gl-term-color', '--gl-current-term-color'];
 
-        return apply_filters('ogdm_dynamic_css_vars', $vars);
+        return apply_filters('hkdm_dynamic_css_vars', $vars);
     }
 
     /**
      * Sources ACF : champs color_picker liés aux taxonomies.
-     * Filtre manuel : ogdm_acf_term_color_sources → [['taxonomy'=>'…','field'=>'…','dark_field'=>'…'], …]
+     * Filtre manuel : hkdm_acf_term_color_sources → [['taxonomy'=>'…','field'=>'…','dark_field'=>'…'], …]
      *
      * @return array<int, array{taxonomy: string, field: string, dark_field: string, label: string}>
      */
@@ -36,7 +36,7 @@ final class OGDM_ACF_Term_Colors {
             return self::$sources_cache;
         }
 
-        $manual = apply_filters('ogdm_acf_term_color_sources', null);
+        $manual = apply_filters('hkdm_acf_term_color_sources', null);
         if (is_array($manual) && $manual !== []) {
             self::$sources_cache = self::normalize_sources($manual);
 
@@ -215,7 +215,7 @@ final class OGDM_ACF_Term_Colors {
                 return $hex ?: $default;
             }
             if (stripos($color, 'rgb') === 0) {
-                $sanitized = ogdm_sanitize_css_color_value($color);
+                $sanitized = hkdm_sanitize_css_color_value($color);
 
                 return $sanitized !== '' ? $sanitized : $default;
             }
@@ -245,7 +245,7 @@ final class OGDM_ACF_Term_Colors {
      * Clé stable pour le map (hex minuscule ou rgb normalisé).
      */
     public static function color_map_key($css_color) {
-        $css = ogdm_sanitize_css_color_value((string) $css_color);
+        $css = hkdm_sanitize_css_color_value((string) $css_color);
         if ($css === '') {
             return '';
         }
@@ -352,7 +352,7 @@ final class OGDM_ACF_Term_Colors {
      * @return array<string, string> clé couleur claire => couleur CSS mode sombre
      */
     public static function get_dark_color_map() {
-        $settings = get_option('ogdm_settings', []);
+        $settings = get_option('hkdm_settings', []);
         $saved = isset($settings['acf_color_map']) && is_array($settings['acf_color_map'])
             ? $settings['acf_color_map']
             : [];
@@ -363,7 +363,7 @@ final class OGDM_ACF_Term_Colors {
         foreach ($scanned as $key => $row) {
             $id = $row['id'];
             if (isset($saved[$id])) {
-                $dark = ogdm_sanitize_css_color_value((string) $saved[$id]);
+                $dark = hkdm_sanitize_css_color_value((string) $saved[$id]);
                 if ($dark !== '') {
                     $out[$key] = $dark;
                     continue;
@@ -371,14 +371,14 @@ final class OGDM_ACF_Term_Colors {
             }
 
             if (!empty($row['dark_default'])) {
-                $dark = ogdm_sanitize_css_color_value((string) $row['dark_default']);
+                $dark = hkdm_sanitize_css_color_value((string) $row['dark_default']);
                 if ($dark !== '') {
                     $out[$key] = $dark;
                 }
             }
         }
 
-        return apply_filters('ogdm_acf_dark_color_map', $out, $scanned);
+        return apply_filters('hkdm_acf_dark_color_map', $out, $scanned);
     }
 
     /**
@@ -393,13 +393,13 @@ final class OGDM_ACF_Term_Colors {
         foreach ($map as $key => $dark) {
             $out[$key] = $dark;
 
-            $hex = ogdm_normalize_color_to_hex($key);
+            $hex = hkdm_normalize_color_to_hex($key);
             if ($hex) {
                 $out[strtolower($hex)] = $dark;
             }
 
             if (preg_match('/rgba?\(/i', $key)) {
-                $normalized = ogdm_sanitize_css_color_value($key);
+                $normalized = hkdm_sanitize_css_color_value($key);
                 if ($normalized !== '') {
                     $out[$normalized] = $dark;
                 }

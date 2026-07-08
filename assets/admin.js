@@ -72,15 +72,15 @@
     var start = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0)';
     var end = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
     var grad = 'linear-gradient(to right,' + start + ',' + end + ')';
-    $picker.find('.ogdm-picker__alpha').css('background', grad);
+    $picker.find('.hkdm-picker__alpha').css('background', grad);
   }
 
   function paintPicker($picker) {
-    var $hex = $picker.find('.ogdm-picker__hex');
-    var $alpha = $picker.find('.ogdm-picker__alpha');
-    var $value = $picker.find('.ogdm-picker__value');
-    var $fill = $picker.find('.ogdm-picker__fill');
-    var $hint = $picker.find('.ogdm-picker__hint');
+    var $hex = $picker.find('.hkdm-picker__hex');
+    var $alpha = $picker.find('.hkdm-picker__alpha');
+    var $value = $picker.find('.hkdm-picker__value');
+    var $fill = $picker.find('.hkdm-picker__fill');
+    var $hint = $picker.find('.hkdm-picker__hint');
     var css = buildCss($hex.val(), $alpha.val());
 
     if (css) {
@@ -101,51 +101,51 @@
   function applyCssToPicker($picker, css) {
     var kitHex = $picker.attr('data-kit-hex') || '#000000';
     var ui = parseCssToUi(css, kitHex);
-    $picker.find('.ogdm-picker__hex').val(ui.hex);
-    $picker.find('.ogdm-picker__alpha').val(ui.opacity);
+    $picker.find('.hkdm-picker__hex').val(ui.hex);
+    $picker.find('.hkdm-picker__alpha').val(ui.opacity);
     paintPicker($picker);
   }
 
   function initPicker($picker) {
     paintPicker($picker);
-    $picker.find('.ogdm-picker__hex, .ogdm-picker__alpha').on('input change', function () {
+    $picker.find('.hkdm-picker__hex, .hkdm-picker__alpha').on('input change', function () {
       paintPicker($picker);
     });
-    $picker.find('.ogdm-picker__surface').on('click', function (e) {
-      if (!$(e.target).hasClass('ogdm-picker__alpha')) {
-        $picker.find('.ogdm-picker__hex').trigger('click');
+    $picker.find('.hkdm-picker__surface').on('click', function (e) {
+      if (!$(e.target).hasClass('hkdm-picker__alpha')) {
+        $picker.find('.hkdm-picker__hex').trigger('click');
       }
     });
   }
 
   $(function () {
-    $('.ogdm-picker[data-color-row]').each(function () {
+    $('.hkdm-picker[data-color-row]').each(function () {
       initPicker($(this));
     });
 
-    $('#ogdm-reset-colors-default').on('click', function (e) {
+    $('#hkdm-reset-colors-default').on('click', function (e) {
       e.preventDefault();
-      $('.ogdm-admin-table--globals .ogdm-picker').each(function () {
+      $('.hkdm-admin-table--globals .hkdm-picker').each(function () {
         applyCssToPicker($(this), $(this).attr('data-kit-default') || '');
       });
     });
 
-    $('#ogdm-reset-button-colors-default').on('click', function (e) {
+    $('#hkdm-reset-button-colors-default').on('click', function (e) {
       e.preventDefault();
-      $('.ogdm-admin-table--buttons .ogdm-picker').each(function () {
+      $('.hkdm-admin-table--buttons .hkdm-picker').each(function () {
         applyCssToPicker($(this), $(this).attr('data-kit-default') || '');
       });
     });
 
-    $('#ogdm-reset-acf-colors-default').on('click', function (e) {
+    $('#hkdm-reset-acf-colors-default').on('click', function (e) {
       e.preventDefault();
-      $('.ogdm-admin-table--acf .ogdm-picker').each(function () {
+      $('.hkdm-admin-table--acf .hkdm-picker').each(function () {
         applyCssToPicker($(this), $(this).attr('data-kit-default') || '');
       });
     });
 
     $('form').on('submit', function () {
-      $('.ogdm-picker[data-color-row]').each(function () {
+      $('.hkdm-picker[data-color-row]').each(function () {
         paintPicker($(this));
       });
     });
